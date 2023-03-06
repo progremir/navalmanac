@@ -20,13 +20,7 @@ Next, we'll need to load our data source.
 
 Data ingestion happens in two steps.
 
-First, you should run
-
-```bash
-sh download.sh
-```
-
-This will download our data source (in this case the Langchain docs ).
+First, you should download the book / source and format it into something readable. In my case I downloaded the book from [here](https://www.navalmanack.com/) and converted it into `md` format using Calibre. Add that source to the project folder and update `FILENAME` in `ingest.ts` to match the filename.
 
 Next, install dependencies and run the ingestion script:
 
