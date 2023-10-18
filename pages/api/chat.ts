@@ -9,10 +9,9 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const body = req.body;
-  
-  const dir = path.resolve(process.cwd(), "1459034a-545c-433f-9cc8-d2a06f25fc81");
+  const { question, history, id } = req.body;
 
+  const dir = path.resolve(process.cwd(), id);
   const vectorstore = await HNSWLib.load(dir, new OpenAIEmbeddings());
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
@@ -34,8 +33,8 @@ export default async function handler(
 
   try {
     await chain.call({
-      question: body.question,
-      chat_history: body.history,
+      question: question,
+      chat_history: history,
     });
   } catch (err) {
     console.error(err);

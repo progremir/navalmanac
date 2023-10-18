@@ -22,18 +22,56 @@ type Message = {
 // 4. Send the id in the /chat API
 
 export default function Home() {
-  const router = useRouter();
-  const { id } = router.query;
-  if (id) {
-    console.log(id)
-  }
   const [userInput, setUserInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
 
+  const router = useRouter();
+  const { id } = router.query;
+  // fetch restautant id and set state
+  useEffect(() => {
+    // Ensure id exists
+    if (!id) return;
+  
+    const fetchRestaurantData = async () => {
+      try {
+        // just to test
+        await new Promise(resolve => setTimeout(resolve, 500));
+        // ------------
+
+        const response = await fetch(`/api/restaurants/${id}`);
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        setRestaurant(data)
+        setLoading(false);
+      } catch (err) {
+        console.log(err);
+        setLoading(false);
+      }
+    };
+  
+    fetchRestaurantData();
+  }, [id]);
+
+  // set initial message
+  useEffect(() => {
+    if (restaurant) {
+       setMessageState(prevState => ({
+          ...prevState,
+          messages: [{
+             "message": `Hi, I'm Umami, an AI assistant for ${restaurant.name}. How can I help you?`,
+             "type": "apiMessage"
+          }]
+       }));
+    }
+ }, [restaurant]);
+ 
+
   const [messageState, setMessageState] = useState<{ messages: Message[], pending?: string, history: [string, string][] }>({
     messages: [{
-      "message": `Hi, I'm an Umami, an AI assistant for China Garden. How can I help you?`,
+      "message": `Hi, I'm Umami, an AI assistant. How can I help you?`,
       "type": "apiMessage"
     }],
     history: []
@@ -59,6 +97,12 @@ export default function Home() {
   // Handle form submission
   const handleSubmit = async (e: any) => {
     e.preventDefault();
+
+    // check for restaurant id
+    if (!id) {
+      console.error("Restaurant ID is not available yet.");
+      return;
+    }
 
     const question = userInput.trim();
     if (question === "") {
@@ -87,7 +131,8 @@ export default function Home() {
       },
       body: JSON.stringify({
         question,
-        history
+        history,
+        id
       }),
       signal: ctrl.signal,
       onmessage: (event) => {
