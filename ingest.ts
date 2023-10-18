@@ -4,7 +4,7 @@ import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { PDFLoader } from "langchain/document_loaders";
 import * as fs from 'fs';
 
-const id = '1459034a-545c-433f-9cc8-d2a06f25fc81';
+const id = '5869e92d-3efc-47db-9b4a-35fae9b41541';
 const filePath = 'restaurants.json';
 
 export const run = async () => {

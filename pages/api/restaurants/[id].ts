@@ -14,7 +14,6 @@ export default async function handler(
     const dataPath = path.join(process.cwd(), 'restaurants.json');
     const rawData = fs.readFileSync(dataPath, 'utf-8');
     const restaurants = JSON.parse(rawData);
-    console.log(restaurants);
 
     // Find the restaurant by ID
     const restaurant = restaurants.find((restaurant: { id: any; }) => restaurant.id === id);

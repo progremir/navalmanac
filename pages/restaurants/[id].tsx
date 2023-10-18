@@ -95,7 +95,7 @@ export default function Home() {
   }, [loading]);
 
   // Handle form submission
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: any, restaurantData: Restaurant | null) => {
     e.preventDefault();
 
     // check for restaurant id
@@ -121,9 +121,12 @@ export default function Home() {
     setLoading(true);
     setUserInput("");
     setMessageState(state => ({ ...state, pending: "" }));
-
+  
+    var restaurantName = "";
+    if (restaurantData) {
+      restaurantName = restaurantData.name;
+    }
     const ctrl = new AbortController();
-
     fetchEventSource('/api/chat', {
       method: 'POST',
       headers: {
@@ -132,7 +135,8 @@ export default function Home() {
       body: JSON.stringify({
         question,
         history,
-        id
+        id,
+        restaurantName
       }),
       signal: ctrl.signal,
       onmessage: (event) => {
@@ -159,10 +163,10 @@ export default function Home() {
   }
 
   // Prevent blank submissions and allow for multiline input
-  const handleEnter = (e: any) => {
+  const handleEnter = async (e: any, restaurantData: Restaurant | null) => {
     if (e.key === "Enter" && userInput) {
       if(!e.shiftKey && userInput) {
-        handleSubmit(e);
+        handleSubmit(e, restaurant);
       }
     } else if (e.key === "Enter") {
       e.preventDefault();
@@ -252,10 +256,10 @@ export default function Home() {
         </div>
         <div className={styles.center}>
           <div className={styles.cloudform}>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={e => handleSubmit(e, restaurant)}>
               <textarea 
                 disabled={loading}
-                onKeyDown={handleEnter}
+                onSubmit={e => handleEnter(e, restaurant)}
                 ref={textAreaRef}
                 autoFocus={false}
                 rows={1}
@@ -297,19 +301,6 @@ export default function Home() {
     </>
   )
 }
-
-// export const getServerSideProps = (async (context) => {
-//     const { id } = context.query;
-//     const response = await fetch("api/restaurants/id");
-//     const data = await response.json();
-//     console.log("data", data);
-      
-//     return {
-//       props: {
-//         data,
-//       },
-//     };
-//   })
 
 interface Restaurant {
     id: string;

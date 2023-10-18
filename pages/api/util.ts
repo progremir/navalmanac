@@ -6,15 +6,16 @@ import { PromptTemplate } from "langchain/prompts";
 import { LLMChainInput } from "langchain/dist/chains/llm_chain";
 
 const SYSTEM_MESSAGE = PromptTemplate.fromTemplate(
-  `You are an helpful AI assistant for the restaurants called China Garden. You are given the following extracted parts from their menu or other information
+  `You are an helpful AI assistant for the restaurant called {restaurant_name}. You are given the following extracted parts from their menu or other information
   about the restaurant. The context is between two '========='. Provide conversational answers in Markdown syntax with links formatted as hyperlinks.
 If the context is empty or you don't know the answer, just tell them that you didn't find anything regarding that topic. Don't try to make up an answer.
-If the question is not about the restaurant or any food items from the menu, politely inform them that you are tuned to only answer questions about the restaurant China Garden.
+If the question is not about the restaurant or any food items from the menu, politely inform them that you are tuned to only answer questions about the restaurant {restaurant_name}.
 =========
 {context}
 =========`);
 
 const QA_PROMPT = PromptTemplate.fromTemplate(`{question}`);
+const RESTAURANT_NAME = PromptTemplate.fromTemplate(`{restaurant_name}`);
 
 // VectorDBQAChain is a chain that uses a vector store to find the most similar document to the question
 // and then uses a documents chain to combine all the documents into a single string
@@ -28,7 +29,8 @@ export class OpenAIChatLLMChain extends LLMChain implements LLMChainInput {
     if ("stop" in values && Array.isArray(values.stop)) {
       stop = values.stop;
     }
-    const { chat_history } = values;
+    const {restaurant_name, chat_history} = values;
+    console.log(restaurant_name);
     const prefixMessages = chat_history.map((message: string[]) => {
       return [
         {
@@ -42,7 +44,7 @@ export class OpenAIChatLLMChain extends LLMChain implements LLMChainInput {
       ]
     }).flat();
 
-    const formattedSystemMessage = await SYSTEM_MESSAGE.format({ context: values.context })
+    const formattedSystemMessage = await SYSTEM_MESSAGE.format({ context: values.context, restaurant_name: values.restaurant_name})
     // @ts-ignore
     this.llm.prefixMessages = [
       {
@@ -85,7 +87,7 @@ class OpenAIChatVectorDBQAChain extends VectorDBQAChain {
     const question: string = values[this.inputKey];
     const docs = await this.vectorstore.similaritySearch(question, this.k);
     // all of this just to pass chat history to the LLMChain
-    const inputs = { question, input_documents: docs, chat_history: values.chat_history };
+    const inputs = { question, input_documents: docs, chat_history: values.chat_history, restaurant_name: values.restaurant_name };
     console.log("inputs:", inputs)
     const result = await this.combineDocumentsChain.call(inputs);
     return result;

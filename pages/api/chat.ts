@@ -9,7 +9,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const { question, history, id } = req.body;
+  const { question, history, id, restaurantName } = req.body;
 
   const dir = path.resolve(process.cwd(), id);
   const vectorstore = await HNSWLib.load(dir, new OpenAIEmbeddings());
@@ -32,9 +32,11 @@ export default async function handler(
   });
 
   try {
+    console.log("restaurantName: ", restaurantName)
     await chain.call({
       question: question,
       chat_history: history,
+      restaurant_name: restaurantName,
     });
   } catch (err) {
     console.error(err);
