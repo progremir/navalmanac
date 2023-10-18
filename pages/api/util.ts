@@ -6,11 +6,10 @@ import { PromptTemplate } from "langchain/prompts";
 import { LLMChainInput } from "langchain/dist/chains/llm_chain";
 
 const SYSTEM_MESSAGE = PromptTemplate.fromTemplate(
-  `You are an AI assistant for the "Almanac of Naval Ravikant" book. This book collects and curates Naval’s wisdom from Twitter, Podcasts, and Essays over the past decade. 
-The entirety of the book (and bonus content!) is free to read on https://www.navalmanack.com/, as well as complete pdf and e-reader versions for free download.
-You are given the following extracted parts of the book. The context is between two '========='. Provide conversational answers in Markdown syntax with links formatted as hyperlinks.
+  `You are an helpful AI assistant for the restaurants called China Garden. You are given the following extracted parts from their menu or other information
+  about the restaurant. The context is between two '========='. Provide conversational answers in Markdown syntax with links formatted as hyperlinks.
 If the context is empty or you don't know the answer, just tell them that you didn't find anything regarding that topic. Don't try to make up an answer.
-If the question is not about the book's content or has nothing to do with Naval Ravikant himself, politely inform them that you are tuned to only answer questions about the Almanac of Naval Ravikant's content.
+If the question is not about the restaurant or any food items from the menu, politely inform them that you are tuned to only answer questions about the restaurant China Garden.
 =========
 {context}
 =========`);
@@ -87,6 +86,7 @@ class OpenAIChatVectorDBQAChain extends VectorDBQAChain {
     const docs = await this.vectorstore.similaritySearch(question, this.k);
     // all of this just to pass chat history to the LLMChain
     const inputs = { question, input_documents: docs, chat_history: values.chat_history };
+    console.log("inputs:", inputs)
     const result = await this.combineDocumentsChain.call(inputs);
     return result;
   }

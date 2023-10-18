@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import styles from '../../styles/Home.module.css'
 import Image from 'next/image';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import CircularProgress from '@mui/material/CircularProgress';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import remarkGfm from "remark-gfm";
+import { useRouter } from 'next/router';
 
 type Message = {
   type: "apiMessage" | "userMessage";
@@ -14,12 +15,25 @@ type Message = {
   isStreaming?: boolean;
 }
 
+// TODOs:
+// 1. Fetch the id from the url
+// 2. Send it to the GET restraurants/{id} API to fetch restaurant detail
+// 3. Set current restaurant state on the frontend. 
+// 4. Send the id in the /chat API
+
 export default function Home() {
+  const router = useRouter();
+  const { id } = router.query;
+  if (id) {
+    console.log(id)
+  }
   const [userInput, setUserInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+
   const [messageState, setMessageState] = useState<{ messages: Message[], pending?: string, history: [string, string][] }>({
     messages: [{
-      "message": "Hi, I'm an AI assistant for the Almanac of Naval Ravikant. How can I help you?",
+      "message": `Hi, I'm an Umami, an AI assistant for China Garden. How can I help you?`,
       "type": "apiMessage"
     }],
     history: []
@@ -118,8 +132,8 @@ export default function Home() {
     <>
       <Head>
         {/* <!-- Primary Meta Tags --> */}
-        <title>Almanac of Naval Ravikant: Chatbot</title>
-        <meta name="title" content="Almanac of Naval Ravikant: Chatbot" />
+        <title>Umami.ai</title>
+        <meta name="title" content="Umami.ai: Ask away" />
         <meta name="description" content="Learn from one of the greatest thinkers of our time. Get access to Naval's wisdom and insights on wealth, happiness, and success." />
 
         {/* <!-- Open Graph / Facebook --> */}
@@ -138,7 +152,7 @@ export default function Home() {
       </Head>
       <div className={styles.topnav}>
         <div>
-          <Link href="/"><h1 className={styles.navlogo}>Almanac of Naval Ravikant: Chatbot</h1></Link>
+          <Link href="/"><h1 className={styles.navlogo}>Umami.ai</h1></Link>
         </div>
         <div className = {styles.navlinks}>
           <a
@@ -238,3 +252,23 @@ export default function Home() {
     </>
   )
 }
+
+// export const getServerSideProps = (async (context) => {
+//     const { id } = context.query;
+//     const response = await fetch("api/restaurants/id");
+//     const data = await response.json();
+//     console.log("data", data);
+      
+//     return {
+//       props: {
+//         data,
+//       },
+//     };
+//   })
+
+interface Restaurant {
+    id: string;
+    name: string;
+    filename: string;
+  }
+

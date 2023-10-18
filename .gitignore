@@ -30,6 +30,7 @@ yarn-error.log*
 
 # Used env file
 .env
+key.env
 
 # vercel
 .vercel

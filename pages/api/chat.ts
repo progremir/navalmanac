@@ -10,7 +10,8 @@ export default async function handler(
   res: NextApiResponse
 ) {
   const body = req.body;
-  const dir = path.resolve(process.cwd(), "data");
+  
+  const dir = path.resolve(process.cwd(), "1459034a-545c-433f-9cc8-d2a06f25fc81");
 
   const vectorstore = await HNSWLib.load(dir, new OpenAIEmbeddings());
   res.writeHead(200, {
