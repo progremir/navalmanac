@@ -5,17 +5,26 @@ import { HNSWLib } from "langchain/vectorstores";
 import { PromptTemplate } from "langchain/prompts";
 import { LLMChainInput } from "langchain/dist/chains/llm_chain";
 
+const LanguageMap: Record<string, string> = {
+  'ja': 'Japanese',
+  'en': 'English'
+}
+
+function getValueForKey(key: string): string | undefined {
+  return LanguageMap[key];
+}
+
 const SYSTEM_MESSAGE = PromptTemplate.fromTemplate(
-  `You are an helpful AI assistant for the restaurant called {restaurant_name}. You are given the following extracted parts from their menu or other information
-  about the restaurant. The context is between two '========='. Provide conversational answers in Markdown syntax with links formatted as hyperlinks.
-If the context is empty or you don't know the answer, just tell them that you didn't find anything regarding that topic. Don't try to make up an answer.
+  `Important: Your answer should always be given in {language} language. Strictly do not include words from any other language in your response than the one specified.
+
+  You are an helpful AI assistant for the restaurant called {restaurant_name}. You are given the following extracted parts from their menu or other information
+  about the restaurant. The context is between two '========='. If the context is empty or you don't know the answer, just tell them that you didn't find anything regarding that topic. Don't try to make up an answer.
 If the question is not about the restaurant or any food items from the menu, politely inform them that you are tuned to only answer questions about the restaurant {restaurant_name}.
 =========
 {context}
 =========`);
 
 const QA_PROMPT = PromptTemplate.fromTemplate(`{question}`);
-const RESTAURANT_NAME = PromptTemplate.fromTemplate(`{restaurant_name}`);
 
 // VectorDBQAChain is a chain that uses a vector store to find the most similar document to the question
 // and then uses a documents chain to combine all the documents into a single string
@@ -29,8 +38,7 @@ export class OpenAIChatLLMChain extends LLMChain implements LLMChainInput {
     if ("stop" in values && Array.isArray(values.stop)) {
       stop = values.stop;
     }
-    const {restaurant_name, chat_history} = values;
-    console.log(restaurant_name);
+    const {chat_history} = values;
     const prefixMessages = chat_history.map((message: string[]) => {
       return [
         {
@@ -44,7 +52,9 @@ export class OpenAIChatLLMChain extends LLMChain implements LLMChainInput {
       ]
     }).flat();
 
-    const formattedSystemMessage = await SYSTEM_MESSAGE.format({ context: values.context, restaurant_name: values.restaurant_name})
+    const languageValue = getValueForKey(values.language)
+    const formattedSystemMessage = await SYSTEM_MESSAGE.format({ context: values.context, restaurant_name: values.restaurant_name, language: languageValue})
+    console.log(formattedSystemMessage)
     // @ts-ignore
     this.llm.prefixMessages = [
       {
@@ -53,12 +63,13 @@ export class OpenAIChatLLMChain extends LLMChain implements LLMChainInput {
       },
       {
         role: "assistant",
-        content: "Hi, I'm an AI assistant for the Almanac of Naval Ravikant. How can I help you?"
+        content: `Hi, I'm an AI assistant for for the restaurant called ${values.restaurant_name}. How can I help you?`
       },
       ...prefixMessages];
     const formattedString = await this.prompt.format(values);
     const llmResult = await this.llm.call(formattedString, stop);
     const result = { [this.outputKey]: llmResult };
+    console.log("result:", result)
     return result;
   }
 }
@@ -87,7 +98,7 @@ class OpenAIChatVectorDBQAChain extends VectorDBQAChain {
     const question: string = values[this.inputKey];
     const docs = await this.vectorstore.similaritySearch(question, this.k);
     // all of this just to pass chat history to the LLMChain
-    const inputs = { question, input_documents: docs, chat_history: values.chat_history, restaurant_name: values.restaurant_name };
+    const inputs = { question, input_documents: docs, chat_history: values.chat_history, restaurant_name: values.restaurant_name, language: values.language };
     console.log("inputs:", inputs)
     const result = await this.combineDocumentsChain.call(inputs);
     return result;

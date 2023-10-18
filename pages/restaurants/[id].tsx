@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react'
+import { useState, useRef, useEffect, useMemo, SetStateAction } from 'react'
 import Head from 'next/head'
 import styles from '../../styles/Home.module.css'
 import Image from 'next/image';
@@ -8,6 +8,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import remarkGfm from "remark-gfm";
 import { useRouter } from 'next/router';
+import Navbar from '../Navbar';
+import { translate } from '../../utils/translate';
 
 type Message = {
   type: "apiMessage" | "userMessage";
@@ -24,6 +26,10 @@ type Message = {
 export default function Home() {
   const [userInput, setUserInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [language, setLanguage] = useState('ja');
+  const changeLanguage = (selectedLanguage: SetStateAction<string>) => {
+    setLanguage(selectedLanguage);
+  };
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
 
   const router = useRouter();
@@ -58,15 +64,16 @@ export default function Home() {
   // set initial message
   useEffect(() => {
     if (restaurant) {
+      const greeting = translate('greeting', language).replace('{restaurant_name}', restaurant.name)
        setMessageState(prevState => ({
           ...prevState,
           messages: [{
-             "message": `Hi, I'm Umami, an AI assistant for ${restaurant.name}. How can I help you?`,
+             "message": `${greeting}`,
              "type": "apiMessage"
           }]
        }));
     }
- }, [restaurant]);
+ }, [restaurant, language]);
  
 
   const [messageState, setMessageState] = useState<{ messages: Message[], pending?: string, history: [string, string][] }>({
@@ -136,7 +143,8 @@ export default function Home() {
         question,
         history,
         id,
-        restaurantName
+        restaurantName,
+        language,
       }),
       signal: ctrl.signal,
       onmessage: (event) => {
@@ -165,8 +173,8 @@ export default function Home() {
   // Prevent blank submissions and allow for multiline input
   const handleEnter = async (e: any, restaurantData: Restaurant | null) => {
     if (e.key === "Enter" && userInput) {
-      if(!e.shiftKey && userInput) {
-        handleSubmit(e, restaurant);
+      if(!e.shiftKey && userInput && restaurantData) {
+        handleSubmit(e, restaurantData);
       }
     } else if (e.key === "Enter") {
       e.preventDefault();
@@ -181,43 +189,29 @@ export default function Home() {
     <>
       <Head>
         {/* <!-- Primary Meta Tags --> */}
-        <title>Umami.ai</title>
-        <meta name="title" content="Umami.ai: Ask away" />
-        <meta name="description" content="Learn from one of the greatest thinkers of our time. Get access to Naval's wisdom and insights on wealth, happiness, and success." />
+        <title>Umami AI</title>
+        <meta name="title" content="Umami AI: Ask away" />
+        <meta name="description" content="Umami AI is the assistant every restaurant deserves." />
 
         {/* <!-- Open Graph / Facebook --> */}
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="Almanac of Naval Ravikant: Chatbot" />
-        <meta property="og:description" content="Learn from one of the greatest thinkers of our time. Get access to Naval's wisdom and insights on wealth, happiness, and success." />
-        <meta property="og:image" content="https://navalmanac.progremir.dev/og-image.svg" />
+        <meta property="og:title" content="UmamiAI: AI assistant every restaurant deserves." />
+        <meta property="og:description" content="UmamiAI: AI assistant every restaurant deserves." />
+        <meta property="og:image" content="../../public/favicon.png" />
 
-        {/* <!-- Twitter --> */}
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:title" content="Almanac of Naval Ravikant: Chatbot" />
-        <meta property="twitter:description" content="Learn from one of the greatest thinkers of our time. Get access to Naval's wisdom and insights on wealth, happiness, and success." />
-        <meta property="twitter:image" content="https://navalmanac.progremir.dev/og-image.svg" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.png" />
       </Head>
       <div className={styles.topnav}>
         <div>
-          <Link href="/"><h1 className={styles.navlogo}>Umami.ai</h1></Link>
+          <Link href="/">
+            <h1 className={styles.navlogo}>
+            <Image src="/favicon.png" alt="AI" width="27" height="27"/>
+              Umami
+            </h1>
+          </Link>
         </div>
         <div className = {styles.navlinks}>
-          <a
-            href="https://www.navalmanack.com/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Book
-          </a>
-          <a
-            href="https://github.com/progremir/navalmanac"
-            target="_blank"
-            rel="noreferrer"
-          >
-            GitHub
-          </a>
+          <Navbar language={language} onChangeLanguage={changeLanguage} />
         </div>
       </div>
       <main className={styles.main}>
@@ -228,7 +222,7 @@ export default function Home() {
               let className;
 
               if (message.type === "apiMessage") {
-                icon = <Image src="/chatIcon.png" alt="AI" width="30" height="30" className={styles.boticon} priority />;
+                icon = <Image src="/favicon.png" alt="AI" width="30" height="30" className={styles.boticon} priority />;
                 className = styles.apimessage;
               } else {
                 icon = <Image src="/usericon.png" alt="Me" width="30" height="30" className={styles.usericon} priority />
@@ -261,12 +255,12 @@ export default function Home() {
                 disabled={loading}
                 onSubmit={e => handleEnter(e, restaurant)}
                 ref={textAreaRef}
-                autoFocus={false}
+                autoFocus={true}
                 rows={1}
                 maxLength={512}
                 id="userInput" 
                 name="userInput" 
-                placeholder={loading? "Waiting for response..." : "Type your question..."}  
+                placeholder={loading? "Waiting for response..." : `${translate('placeholder', language)}`}  
                 value={userInput} 
                 onChange={e => setUserInput(e.target.value)} 
                 className={styles.textarea}
@@ -290,11 +284,7 @@ export default function Home() {
             </form>
           </div>
           <div className = {styles.footer}>
-            <p> Built by <a href="https://twitter.com/progremir" target="_blank" rel="noreferrer">
-                Emir Amanbekov
-              </a>. Not affiliated with <a href="https://www.navalmanack.com/" target="_blank" rel="noreferrer">
-                Almanac of Naval Ravikant
-              </a></p>
+            <p>${translate('footer', language)}</p>
           </div>
         </div>
       </main>

@@ -1,3 +1,7 @@
+## Umami
+
+AI Assistant every restaurant deserves
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
@@ -17,12 +21,6 @@ cp .env.example .env
 Next, we'll need to load our data source.
 
 ### Data Ingestion
-
-Data ingestion happens in two steps.
-
-First, you should download the book / source and format it into something readable. In my case I downloaded the book from [here](https://www.navalmanack.com/) and converted it into `md` format using Calibre. Add that source to the project folder and update `FILENAME` in `ingest.ts` to match the filename.
-
-Next, install dependencies and run the ingestion script:
 
 ```bash
 yarn && yarn ingest

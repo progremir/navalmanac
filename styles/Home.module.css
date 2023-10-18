@@ -32,6 +32,7 @@
   margin-left: 1rem;
 }
 
+
 .navlinks {
   width: 20rem;
   display: flex;
@@ -79,6 +80,12 @@
 .textarea::placeholder {
   color: #5f6368;
 }
+
+.textarea:focus {
+  outline: none;
+  box-shadow: 0 0 5px #15cb19;
+}
+
 
 .generatebutton {
   position: absolute;
@@ -294,5 +301,42 @@
 .fadeIn {
   animation: fadeIn 1s ease-in-out forwards;
   opacity: 0;
+}
+
+.languagedropdown {
+  margin-right: 1rem;
+}
+
+.languagedropdown label {
+  color: #ECECF1;
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.languagedropdown select {
+  background-color: #070809;
+  color: #ECECF1;
+  border: 1px solid #30373d;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.languagedropdown select:focus {
+  outline: none;
+  box-shadow: 0 0 5px #15cb19;
+}
+
+/* Style the options within the dropdown */
+.languagedropdown select option {
+  background-color: #070809;
+  color: #ECECF1;
+  font-size: 1rem;
+  padding: 0.5rem;
+}
+
+.languagedropdown select option:hover {
+  background-color: #1f2227;
 }
 
