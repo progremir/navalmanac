@@ -1,5 +1,3 @@
-import { translate } from '../utils/translate';
-
 interface TranslationProps {
   translate: (key: string) => string;
   key: string;

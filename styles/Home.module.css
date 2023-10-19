@@ -340,3 +340,29 @@
   background-color: #1f2227;
 }
 
+.exampleMessages {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: 10px;
+  gap: 10px; /* Adjust the gap as needed */
+}
+
+.exampleMessage {
+  background-color: #f0f0f0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.3s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: wrap;
+  max-width: 100%;
+  box-shadow: 0 0 5px #15cb19;
+  font-size: 11px;
+  color: black;
+}
+
+.exampleMessage:hover {
+  background-color: #e0e0e0;
+}

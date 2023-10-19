@@ -8,7 +8,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import remarkGfm from "remark-gfm";
 import { useRouter } from 'next/router';
-import Navbar from '../Navbar';
+import Navbar from '../../components/Navbar';
 import { translate } from '../../utils/translate';
 
 type Message = {
@@ -27,6 +27,8 @@ export default function Home() {
   const [userInput, setUserInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState('ja');
+  const [exampleMessages, setExampleMessages] =useState<string[]>([]);
+  const [userInteracted, setUserInteracted] = useState(false);
   const changeLanguage = (selectedLanguage: SetStateAction<string>) => {
     setLanguage(selectedLanguage);
   };
@@ -64,7 +66,7 @@ export default function Home() {
   // set initial message
   useEffect(() => {
     if (restaurant) {
-      const greeting = translate('greeting', language).replace('{restaurant_name}', restaurant.name)
+      const greeting = translate('greeting', language)[0].replace('{restaurant_name}', restaurant.name)
        setMessageState(prevState => ({
           ...prevState,
           messages: [{
@@ -74,6 +76,22 @@ export default function Home() {
        }));
     }
  }, [restaurant, language]);
+
+ // handle example messages
+ useEffect(() => {
+  if (language) {
+    setExampleMessages(translate('exampleMessages', language))
+  }
+ }, [language, exampleMessages])
+//  const handleExampleMessageClick = (e: any) => {
+//   // Trigger handleSubmit with the clicked example message
+//   setUserInput(e.target.value)
+//   handleSubmit(e, restaurant)
+
+//   // Remove all example messages from the list
+//   setExampleMessages([]);
+//   setUserInteracted(true);
+// };
  
 
   const [messageState, setMessageState] = useState<{ messages: Message[], pending?: string, history: [string, string][] }>({
@@ -111,7 +129,7 @@ export default function Home() {
       return;
     }
 
-    const question = userInput.trim();
+    var question = userInput.trim();
     if (question === "") {
       return;
     }
@@ -128,6 +146,10 @@ export default function Home() {
     setLoading(true);
     setUserInput("");
     setMessageState(state => ({ ...state, pending: "" }));
+
+    //Remove all example messages from the list
+    setExampleMessages([]);
+    setUserInteracted(true);
   
     var restaurantName = "";
     if (restaurantData) {
@@ -157,9 +179,13 @@ export default function Home() {
             }],
             pending: undefined
           }));
+          console.log("inside done")
+          console.log(messages)
           setLoading(false);
           ctrl.abort();
         } else {
+          console.log("inside else")
+          console.log(messages)
           const data = JSON.parse(event.data);
           setMessageState(state => ({
             ...state,
@@ -246,6 +272,21 @@ export default function Home() {
                   </div>
               )
             })}
+             {!userInteracted && (
+              <div className={styles.exampleMessages}>
+                {exampleMessages.map((message) => (
+                  <button
+                    key={message}
+                    id="exampleMessage"
+                    value={message}
+                    onClick={e => handleSubmit(e, restaurant)}
+                    className={styles.exampleMessage}
+                  >
+                    {message}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
         <div className={styles.center}>
@@ -255,12 +296,12 @@ export default function Home() {
                 disabled={loading}
                 onSubmit={e => handleEnter(e, restaurant)}
                 ref={textAreaRef}
-                autoFocus={true}
+                autoFocus={false}
                 rows={1}
                 maxLength={512}
                 id="userInput" 
                 name="userInput" 
-                placeholder={loading? "Waiting for response..." : `${translate('placeholder', language)}`}  
+                placeholder={loading? "Waiting for response..." : `${translate('placeholder', language)[0]}`}  
                 value={userInput} 
                 onChange={e => setUserInput(e.target.value)} 
                 className={styles.textarea}
@@ -284,7 +325,7 @@ export default function Home() {
             </form>
           </div>
           <div className = {styles.footer}>
-            <p>${translate('footer', language)}</p>
+            <p>${translate('footer', language)[0]}</p>
           </div>
         </div>
       </main>
